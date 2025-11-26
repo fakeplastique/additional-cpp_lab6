@@ -19,8 +19,8 @@ public:
     struct promise_type
     {
         int answer = 0;
-        std::shared_ptr<int> question;
         int number;
+        std::shared_ptr<int> question;
         promise_type(int number, std::shared_ptr<int> question) 
             : number(number), question(question) {}
         void unhandled_exception() { std::terminate(); }
