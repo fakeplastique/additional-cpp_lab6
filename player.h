@@ -7,11 +7,20 @@ class Player
 public:
     struct promise_type;
     using handle = std::coroutine_handle<promise_type>;
-    int operator()()
+
+    bool in_progress() { return coro and !coro.done(); }
+    bool next_turn()
     {
-        coro.resume();
-        return coro.promise().result;
+        return in_progress() ? (coro.resume(), !coro.done()) : false;
     }
+
+    int currentGuess() const
+    {
+        if (coro)
+            return coro.promise().result;
+        throw std::runtime_error("coroutine is destroyed");
+    }
+    operator bool() const noexcept { return bool(coro); }
 
     struct promise_type
     {
@@ -28,7 +37,6 @@ public:
         {
             return Player{handle::from_promise(*this)};
         }
-        void return_void(){}
     };
 
     Player(Player const &) = delete;
