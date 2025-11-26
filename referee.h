@@ -21,8 +21,8 @@ public:
         int answer = 0;
         std::shared_ptr<int> question;
         int number;
-        promise_type(int number, std::shared_ptr<int> question)
-            : question(question), number(number) {}
+        promise_type(int number, std::shared_ptr<int> question) 
+            : number(number), question(question) {}
         void unhandled_exception() { std::terminate(); }
         auto initial_suspend() { return std::suspend_always{}; }
         auto final_suspend() noexcept { return std::suspend_always{}; }
