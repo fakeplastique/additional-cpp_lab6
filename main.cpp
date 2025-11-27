@@ -5,7 +5,6 @@
 #include <memory>
 #include <cmath>
 #include <format>
-#define DEMO 
 
 
 const int FIRST_NUMBER = 1;
@@ -62,10 +61,8 @@ Player gamblerPlayer(
         } else if (lastGuess->response == -1) {
             start = std::max(start, lastGuess->number+1); 
         } else {
-            std::cout << std::format("Gambler player wins with: {} \n", guess);
             break;
         }
-        std::cout << std::format("Gambler player chooses: {} \n", guess);
 
         co_yield guess;
 
@@ -106,10 +103,8 @@ Player binarySearchPlayer(
         } else if (lastGuess->response == -1) {
             start = std::max(start, lastGuess->number+1); 
         } else {
-            std::cout << std::format("Binary search player wins with: {} \n", guess);
             break;
         }
-        std::cout << std::format("Binary search player chooses: {} \n", guess);
 
         co_yield guess;
 
@@ -125,6 +120,7 @@ int main() {
 
     int numberToGuess = generator(FIRST_NUMBER, LAST_NUMBER);
     std::cout << "Number to guess: " << numberToGuess << std::endl;
+    std::cout << "===================\n";
 
     Referee ref = guessNumberGame(
         numberToGuess, 
@@ -136,13 +132,19 @@ int main() {
     Player player2 = binarySearchPlayer(ref, lastGuessResult);
 
     std::vector<Player*> players{&player1, &player2}; 
+    std::vector<std::string> playerNames{"Gambler", "Binary Search"};
 
     int turn = 0;
     while (lastGuessResult->response != 0) {
-        Player* curr = players[turn % 2];
-        if (curr->next_turn())
-            curr->currentGuess();
+        Player* player = players[turn % 2];
+        if (player->next_turn()) {
+            std::cout << std::format("{} player chooses: {}. ", playerNames[turn % 2], player->currentGuess());
+            lastGuessResult->response ? std::cout << "Too small!" : std::cout << "Too big!";
+            std::cout << std::endl;
+        }
         turn++;
     }
+
+    std::cout << std::format("{} player wins with {}!\n", playerNames[--turn % 2], lastGuessResult->number);
 
 }
