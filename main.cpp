@@ -64,10 +64,7 @@ Player gamblerPlayer(
             break;
         }
 
-        co_yield guess;
-
-        if (response == 0) break;
-        
+        co_yield guess;        
     }
 
 
@@ -107,8 +104,6 @@ Player binarySearchPlayer(
         }
 
         co_yield guess;
-
-        
     }
 }
 
