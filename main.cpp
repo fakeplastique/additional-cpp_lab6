@@ -1,10 +1,9 @@
+#include <iostream>
+#include <memory>
+#include <format>
 #include "random_generator.h"
 #include "referee.h"
 #include "player.h"
-#include <iostream>
-#include <memory>
-#include <cmath>
-#include <format>
 
 
 const int FIRST_NUMBER = 1;
@@ -14,6 +13,16 @@ struct GuessResult {
     int number = std::numeric_limits<int>::min();
     int response = std::numeric_limits<int>::min();
 };
+
+
+void updateRange(int& start, int& end, const int& guess, const int& response) {
+    if (response == 1) {
+        end = std::min(end, guess - 1);
+    } else if (response == -1) {
+        start = std::max(start, guess + 1);
+    }
+}
+
 
 Referee guessNumberGame(int number, std::shared_ptr<int> clientGuess) {
     while (true) {
@@ -42,12 +51,10 @@ Player gamblerPlayer(
     while (true) {
 
         if (lastGuess->response != std::numeric_limits<int>::min()) {
-            if (lastGuess->response == 1)
-                end = std::min(end, lastGuess->number-1);
-            else if (lastGuess->response == -1)
-                start = std::max(start, lastGuess->number+1);
-            else 
+            if (lastGuess->response == 0) {
                 break;
+            }
+            updateRange(start, end, lastGuess->number, lastGuess->response);
         }
 
         int guess = generator(start, end);
@@ -56,15 +63,9 @@ Player gamblerPlayer(
         lastGuess->number = guess;
         lastGuess->response = response;
 
-        if (response == 1) {
-            end = std::min(end, lastGuess->number-1);
-        } else if (lastGuess->response == -1) {
-            start = std::max(start, lastGuess->number+1); 
-        } else {
-            break;
-        }
+        updateRange(start, end, guess, response);
 
-        co_yield guess;        
+        co_yield guess;
     }
 
 
@@ -79,12 +80,10 @@ Player binarySearchPlayer(
     while (true) {
 
         if (lastGuess->response != std::numeric_limits<int>::min()) {
-            if (lastGuess->response == 1)
-                end = std::min(end, lastGuess->number-1);
-            else if (lastGuess->response == -1)
-                start = std::max(start, lastGuess->number+1);
-            else 
+            if (lastGuess->response == 0) {
                 break;
+            }
+            updateRange(start, end, lastGuess->number, lastGuess->response);
         }
 
 
@@ -95,13 +94,7 @@ Player binarySearchPlayer(
         lastGuess->response = response;
 
         
-        if (response == 1) {
-            end = std::min(end, lastGuess->number-1);
-        } else if (lastGuess->response == -1) {
-            start = std::max(start, lastGuess->number+1); 
-        } else {
-            break;
-        }
+        updateRange(start, end, guess, response);
 
         co_yield guess;
     }
@@ -134,12 +127,16 @@ int main() {
         Player* player = players[turn % 2];
         if (player->next_turn()) {
             std::cout << std::format("{} player chooses: {}. ", playerNames[turn % 2], player->currentGuess());
-            lastGuessResult->response ? std::cout << "Too small!" : std::cout << "Too big!";
-            std::cout << std::endl;
+
+            if (lastGuessResult->response) { 
+                std::cout << ((lastGuessResult->response == -1) ? "Too small!" : "Too big!") << std::endl;
+            } else {
+                std::cout << std::endl;
+                std::cout << std::format("{} player wins with {}!\n", playerNames[turn % 2], lastGuessResult->number);
+            }
         }
         turn++;
     }
 
-    std::cout << std::format("{} player wins with {}!\n", playerNames[--turn % 2], lastGuessResult->number);
 
 }
